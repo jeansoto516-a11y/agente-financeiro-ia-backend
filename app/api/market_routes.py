@@ -27,7 +27,8 @@ def top_assets():
 # HISTÓRICO DE PREÇOS
 # =====================================
 
-@router.get("/historical/{symbol}")
+from app.models.market_model import MarketResponse
+@router.get("/historico", response_model=MarketResponse)
 def historical(
     symbol: str,
     start: str,
