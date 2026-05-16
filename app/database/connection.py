@@ -3,10 +3,18 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
+from dotenv import load_dotenv
+import os
 
-# URL DE CONEXÃO DO POSTGRESQL
+# Carrega variáveis de ambiente do arquivo .env
+load_dotenv()
 
-DATABASE_URL = "postgresql://postgres:Jean1245@localhost:5432/agente_financeiro"
+# URL DE CONEXÃO DO POSTGRESQL - Vem do arquivo .env
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Validação: garante que a variável está configurada
+if not DATABASE_URL:
+    raise ValueError("❌ DATABASE_URL não foi configurada no arquivo .env")
 
 # ENGENE DE CONEXÃO
 
