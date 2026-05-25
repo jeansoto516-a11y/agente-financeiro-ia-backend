@@ -1,6 +1,7 @@
 import yfinance as yf
 import pandas as pd
 from ta.momentum import RSIIndicator
+from app.services.history_service import get_analysis_history
 
 # ANÁLISE INDIVIDUAL
 def get_stock_data(symbol: str):
@@ -228,4 +229,12 @@ def get_historical_data(symbol: str, start: str, end: str):
         "dados": historical
     }
 
+# HISTÓRICO DE ANÁLISES
+@router.get("/history")
+def history():
 
+    """
+    Retorna todas análises salvas
+    """
+
+    return get_analysis_history()
