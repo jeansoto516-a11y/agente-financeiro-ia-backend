@@ -1,12 +1,21 @@
+# IMPORTA SERVIÇOS E BANCO
+
 # Importa a função que busca os dados históricos
 from app.services.market_service import get_historical_data
 
-# FUNÇÃO DE ANÁLISE DO ATIVO
+# Importa sessão do banco
+from app.database.connection import SessionLocal
 
+# Importa model ORM
+from app.database.models import Analysis
+
+# FUNÇÃO DE ANÁLISE DO ATIVO
 def analyze_asset(symbol: str):
 
-    # BUSCA DADOS HISTÓRICOS
+    # ABRE SESSÃO COM BANCO
+    db = SessionLocal()
 
+    # BUSCA DADOS HISTÓRICOS
     response = get_historical_data(
         symbol,
         "2025-01-01",
@@ -20,9 +29,7 @@ def analyze_asset(symbol: str):
     # Pega somente os dados
     data = response["dados"]
 
-    # =====================================
     # REMOVE VALORES INVÁLIDOS
-    # =====================================
 
     # Remove registros onde indicadores ainda são None
     data = [
@@ -34,13 +41,12 @@ def analyze_asset(symbol: str):
 
     # Verifica novamente
     if not data:
+
         return {
             "error": "Dados insuficientes para análise"
         }
 
-    # =====================================
     # ÚLTIMOS INDICADORES
-    # =====================================
 
     # Último fechamento
     ultimo_fechamento = data[-1]["fechamento"]
@@ -54,10 +60,7 @@ def analyze_asset(symbol: str):
     # Último RSI
     ultimo_rsi = data[-1]["rsi"]
 
-    # =====================================
     # SINAL OPERACIONAL
-    # =====================================
-
     sinal = "NEUTRO"
 
     # Tendência de alta
@@ -82,10 +85,7 @@ def analyze_asset(symbol: str):
         else:
             sinal = "VENDA"
 
-    # =====================================
     # FORÇA DA TENDÊNCIA
-    # =====================================
-
     forca = "NEUTRA"
 
     # Tendência forte
@@ -96,19 +96,13 @@ def analyze_asset(symbol: str):
     elif ultimo_rsi < 45:
         forca = "FRACA"
 
-    # =====================================
     # DIREÇÃO DA TENDÊNCIA
-    # =====================================
-
     tendencia = "ALTA"
 
     if ultima_mm9 < ultima_mm21:
         tendencia = "BAIXA"
 
-    # =====================================
     # RECOMENDAÇÃO INTELIGENTE
-    # =====================================
-
     recomendacao = ""
 
     if sinal == "COMPRA":
@@ -129,11 +123,46 @@ def analyze_asset(symbol: str):
             "Mercado lateralizado sem confirmação clara."
         )
 
-    # =====================================
+    # SALVA NO BANCO
+    nova_analise = Analysis(
+
+        ativo=symbol,
+
+        preco_atual=round(
+            float(ultimo_fechamento), 2
+        ),
+
+        tendencia=tendencia,
+
+        forca=forca,
+
+        mm9=round(
+            float(ultima_mm9), 2
+        ),
+
+        mm21=round(
+            float(ultima_mm21), 2
+        ),
+
+        rsi=round(
+            float(ultimo_rsi), 2
+        ),
+
+        sinal=sinal,
+
+        recomendacao=recomendacao
+    )
+
+    # Adiciona no banco
+    db.add(nova_analise)
+
+    # Salva alterações
+    db.commit()
+
     # RETORNO FINAL
-    # =====================================
 
     return {
+
         "ativo": symbol,
 
         "preco_atual": round(
