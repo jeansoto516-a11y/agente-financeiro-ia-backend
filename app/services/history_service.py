@@ -1,25 +1,67 @@
-# IMPORTA BANCO E MODEL 
-from app.database.connection import SessionLocal
-from app.database.models import Analysis
+# IMPORTA SERVIÇOS
+from app.services.analysis_service import analyze_asset
 
-# HISTÓRICO DE ANÁLISES
-def get_analysis_history():
-    db = SessionLocal()
-    analyses = db.query(Analysis).all()
-    history = []
+def get_market_ranking():
 
-    for item in analyses:
-        history.append({
-            "id": item.id,
-            "ativo": item.ativo,
-            "preco_atual": item.preco_atual,
-            "tendencia": item.tendencia,
-            "forca": item.forca,
-            "mm9": item.mm9,
-            "mm21": item.mm21,
-            "rsi": item.rsi,
-            "sinal": item.sinal,
-            "recomendacao": item.recomendacao
-        })
+    # Lista de ativos monitorados
+    ativos = [
+        "PETR4.SA",
+        "VALE3.SA",
+        "ITUB4.SA",
+        "BBAS3.SA",
+        "AAPL",
+        "TSLA",
+        "NVDA",
+        "MSFT",
+        "BTC-USD",
+        "ETH-USD"
+    ]
 
-    return history 
+    ranking = []
+
+    # Analisa cada ativo
+    for symbol in ativos:
+
+        try:
+
+            analysis = analyze_asset(symbol)
+
+            # Ignora erros
+            if "error" in analysis:
+                continue
+
+            # Score inicial
+            score = 0
+
+            # Tendência
+            if analysis["tendencia"] == "ALTA":
+                score += 40
+
+            # Força
+            if analysis["forca"] == "FORTE":
+                score += 30
+
+            # RSI saudável
+            if 45 <= analysis["rsi"] <= 65:
+                score += 20
+
+            # Sinal de compra
+            if analysis["sinal"] == "COMPRA":
+                score += 10
+
+            # Adiciona score ao resultado
+            analysis["score"] = score
+
+            ranking.append(analysis)
+
+        except Exception:
+            continue
+
+    # Ordena do maior para o menor score
+    ranking = sorted(
+        ranking,
+        key=lambda x: x["score"],
+        reverse=True
+    )
+
+    return ranking

@@ -16,6 +16,9 @@ from app.services.signal_service import get_market_signals
 # Importa model de resposta
 from app.models.market_model import MarketResponse
 
+# importa o ranking 
+from app.services.ranking_service import get_market_ranking
+
 # Cria o router da API
 router = APIRouter()
 
@@ -79,3 +82,20 @@ def market_signals():
     """
 
     return get_market_signals()
+
+@router.get("/ranking")
+def ranking():
+
+    """
+    Retorna o ranking dos melhores ativos
+    """
+
+    return get_market_ranking()
+
+
+
+
+
+
+
+
